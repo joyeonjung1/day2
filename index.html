@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>제주 여행 | Visit Jeju</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ocean: #0e7490;
+    --ocean-dark: #164e63;
+    --sky: #e0f2fe;
+    --tangerine: #f97316;
+    --stone: #334155;
+    --green: #15803d;
+    --bg: #ffffff;
+    --bg-soft: #f8fafc;
+    --text: #0f172a;
+    --muted: #64748b;
+    --card: #ffffff;
+    --border: #e2e8f0;
+    --radius: 18px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    color: var(--text);
+    background: var(--bg);
+    line-height: 1.6;
+  }
+  a { color: inherit; text-decoration: none; }
+  .container { max-width: 1180px; margin: 0 auto; padding: 0 20px; }
+
+  /* Header */
+  header {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    transition: background .3s, box-shadow .3s;
+  }
+  header.scrolled { background: rgba(255,255,255,.95); backdrop-filter: blur(8px); box-shadow: 0 2px 20px rgba(0,0,0,.08); }
+  header.scrolled .logo, header.scrolled nav a { color: var(--text); }
+  .nav-wrap { display: flex; align-items: center; justify-content: space-between; height: 72px; }
+  .logo { font-weight: 900; font-size: 1.5rem; color: #fff; letter-spacing: -0.5px; }
+  .logo span { color: var(--tangerine); }
+  nav ul { display: flex; gap: 32px; list-style: none; }
+  nav a { color: #fff; font-weight: 500; font-size: .95rem; transition: color .2s; }
+  nav a:hover { color: var(--tangerine); }
+  .menu-btn { display: none; background: none; border: none; font-size: 1.6rem; color: #fff; cursor: pointer; }
+  header.scrolled .menu-btn { color: var(--text); }
+
+  /* Hero */
+  .hero {
+    min-height: 100vh;
+    display: flex; align-items: center;
+    color: #fff;
+    position: relative; overflow: hidden;
+    background: linear-gradient(180deg, #0c4a6e 0%, #0e7490 45%, #22d3ee 100%);
+  }
+  .hero svg.scene { position: absolute; bottom: 0; left: 0; width: 100%; height: 60%; }
+  .hero-content { position: relative; z-index: 2; max-width: 680px; padding-top: 40px; }
+  .hero-tag {
+    display: inline-block; padding: 6px 16px; border-radius: 999px;
+    background: rgba(255,255,255,.18); font-size: .85rem; margin-bottom: 20px;
+  }
+  .hero h1 { font-size: clamp(2.4rem, 6vw, 4.4rem); font-weight: 900; line-height: 1.15; margin-bottom: 20px; }
+  .hero h1 em { font-style: normal; color: #fdba74; }
+  .hero p { font-size: 1.15rem; opacity: .92; margin-bottom: 32px; }
+  .btn {
+    display: inline-block; padding: 14px 30px; border-radius: 999px;
+    font-weight: 700; transition: transform .2s, box-shadow .2s;
+  }
+  .btn-primary { background: var(--tangerine); color: #fff; box-shadow: 0 8px 24px rgba(249,115,22,.4); }
+  .btn-primary:hover { transform: translateY(-2px); }
+  .btn-ghost { border: 2px solid rgba(255,255,255,.7); color: #fff; margin-left: 10px; }
+  .btn-ghost:hover { background: rgba(255,255,255,.15); }
+
+  /* Weather strip */
+  .stats {
+    position: relative; z-index: 3; margin-top: -60px;
+  }
+  .stats-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    background: var(--card); border-radius: var(--radius);
+    box-shadow: 0 20px 50px rgba(15,23,42,.12); overflow: hidden;
+  }
+  .stat { padding: 28px 20px; text-align: center; border-right: 1px solid var(--border); }
+  .stat:last-child { border-right: none; }
+  .stat b { display: block; font-size: 1.8rem; color: var(--ocean); font-weight: 900; }
+  .stat span { color: var(--muted); font-size: .9rem; }
+
+  section { padding: 100px 0; }
+  .section-head { text-align: center; margin-bottom: 50px; }
+  .section-head small { color: var(--tangerine); font-weight: 700; letter-spacing: 2px; font-size: .8rem; }
+  .section-head h2 { font-size: clamp(1.8rem, 4vw, 2.6rem); font-weight: 900; margin: 8px 0 12px; }
+  .section-head p { color: var(--muted); }
+
+  /* Filter */
+  .filters { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin-bottom: 36px; }
+  .filter-btn {
+    padding: 9px 20px; border-radius: 999px; border: 1px solid var(--border);
+    background: var(--bg); cursor: pointer; font-family: inherit; font-size: .9rem; transition: all .2s;
+  }
+  .filter-btn.active, .filter-btn:hover { background: var(--ocean); color: #fff; border-color: var(--ocean); }
+
+  /* Cards */
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 26px; }
+  .card {
+    background: var(--card); border-radius: var(--radius); overflow: hidden;
+    border: 1px solid var(--border); transition: transform .25s, box-shadow .25s; cursor: pointer;
+  }
+  .card:hover { transform: translateY(-6px); box-shadow: 0 18px 40px rgba(15,23,42,.12); }
+  .card-img {
+    height: 200px; display: flex; align-items: center; justify-content: center;
+    font-size: 4.5rem; position: relative;
+  }
+  .card-img .badge {
+    position: absolute; top: 14px; left: 14px; background: rgba(255,255,255,.92);
+    padding: 4px 12px; border-radius: 999px; font-size: .75rem; font-weight: 700; color: var(--stone);
+  }
+  .card-body { padding: 22px; }
+  .card-body h3 { font-size: 1.2rem; margin-bottom: 6px; }
+  .card-body p { color: var(--muted); font-size: .92rem; margin-bottom: 14px; }
+  .card-meta { display: flex; gap: 14px; font-size: .82rem; color: var(--ocean); font-weight: 500; }
+  .card.hide { display: none; }
+
+  /* Map */
+  .map-section { background: var(--bg-soft); }
+  .map-wrap { display: grid; grid-template-columns: 1.4fr 1fr; gap: 40px; align-items: center; }
+  .map-box { background: var(--sky); border-radius: var(--radius); padding: 20px; }
+  .map-box svg { width: 100%; height: auto; display: block; }
+  .pin { cursor: pointer; }
+  .pin circle { transition: r .2s; }
+  .pin:hover circle.dot, .pin.active circle.dot { r: 10; }
+  .map-info {
+    background: var(--card); border-radius: var(--radius); padding: 32px;
+    border: 1px solid var(--border); min-height: 260px;
+  }
+  .map-info .emoji { font-size: 3rem; }
+  .map-info h3 { font-size: 1.5rem; margin: 10px 0; }
+  .map-info p { color: var(--muted); }
+  .map-info .region { display: inline-block; margin-top: 16px; font-size: .85rem; color: var(--ocean); font-weight: 700; }
+
+  /* Seasons */
+  .seasons { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+  .season {
+    border-radius: var(--radius); padding: 30px 24px; color: #fff; min-height: 260px;
+    display: flex; flex-direction: column; justify-content: flex-end;
+  }
+  .season .icon { font-size: 2.6rem; margin-bottom: auto; }
+  .season h3 { font-size: 1.4rem; margin-bottom: 8px; }
+  .season p { font-size: .9rem; opacity: .95; }
+  .spring { background: linear-gradient(160deg, #facc15, #fb7185); }
+  .summer { background: linear-gradient(160deg, #22d3ee, #0369a1); }
+  .autumn { background: linear-gradient(160deg, #fdba74, #b45309); }
+  .winter { background: linear-gradient(160deg, #94a3b8, #1e3a8a); }
+
+  /* Food */
+  .food-section { background: var(--bg-soft); }
+  .food-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; }
+  .food {
+    background: var(--card); border-radius: var(--radius); padding: 28px 20px; text-align: center;
+    border: 1px solid var(--border); transition: transform .2s;
+  }
+  .food:hover { transform: scale(1.04); }
+  .food .icon { font-size: 3rem; }
+  .food h4 { margin: 10px 0 4px; font-size: 1.05rem; }
+  .food p { font-size: .85rem; color: var(--muted); }
+
+  /* Itinerary */
+  .tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 36px; }
+  .tab {
+    padding: 10px 24px; border-radius: 999px; border: 2px solid var(--ocean); background: transparent;
+    color: var(--ocean); font-weight: 700; cursor: pointer; font-family: inherit;
+  }
+  .tab.active { background: var(--ocean); color: #fff; }
+  .timeline { max-width: 760px; margin: 0 auto; position: relative; }
+  .timeline::before { content: ''; position: absolute; left: 22px; top: 0; bottom: 0; width: 2px; background: var(--border); }
+  .day { position: relative; padding-left: 64px; margin-bottom: 30px; }
+  .day .num {
+    position: absolute; left: 0; top: 0; width: 46px; height: 46px; border-radius: 50%;
+    background: var(--ocean); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 900;
+  }
+  .day h4 { font-size: 1.15rem; margin-bottom: 8px; padding-top: 10px; }
+  .day ul { list-style: none; display: flex; flex-wrap: wrap; gap: 8px; }
+  .day li { background: var(--sky); color: var(--ocean-dark); padding: 6px 14px; border-radius: 999px; font-size: .88rem; }
+
+  /* Tips */
+  .tips-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
+  .tip { padding: 26px; border-radius: var(--radius); border: 1px solid var(--border); }
+  .tip .icon { font-size: 1.8rem; }
+  .tip h4 { margin: 10px 0 6px; }
+  .tip p { color: var(--muted); font-size: .9rem; }
+
+  /* CTA */
+  .cta {
+    background: linear-gradient(120deg, var(--ocean-dark), var(--ocean));
+    color: #fff; text-align: center; border-radius: 28px; padding: 70px 30px;
+  }
+  .cta h2 { font-size: clamp(1.6rem, 4vw, 2.4rem); font-weight: 900; margin-bottom: 14px; }
+  .cta p { opacity: .9; margin-bottom: 28px; }
+  .subscribe { display: flex; max-width: 460px; margin: 0 auto; gap: 10px; }
+  .subscribe input {
+    flex: 1; padding: 14px 20px; border-radius: 999px; border: none; font-family: inherit; font-size: 1rem; min-width: 0;
+  }
+  .subscribe button { border: none; cursor: pointer; font-family: inherit; font-size: 1rem; }
+
+  footer { background: #0f172a; color: #94a3b8; padding: 50px 0 30px; margin-top: 100px; }
+  .footer-grid { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 30px; }
+  footer .logo { color: #fff; }
+  footer h5 { color: #fff; margin-bottom: 10px; }
+  footer ul { list-style: none; font-size: .9rem; }
+  footer li { margin-bottom: 6px; }
+  .copy { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #1e293b; font-size: .85rem; }
+
+  /* Modal */
+  .modal {
+    position: fixed; inset: 0; background: rgba(15,23,42,.6); display: none;
+    align-items: center; justify-content: center; z-index: 200; padding: 20px;
+  }
+  .modal.open { display: flex; }
+  .modal-box {
+    background: #fff; border-radius: var(--radius); max-width: 520px; width: 100%; overflow: hidden;
+    animation: pop .25s ease;
+  }
+  @keyframes pop { from { transform: scale(.92); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .modal-img { height: 180px; display: flex; align-items: center; justify-content: center; font-size: 5rem; }
+  .modal-body { padding: 28px; }
+  .modal-body h3 { font-size: 1.5rem; margin-bottom: 10px; }
+  .modal-body p { color: var(--muted); margin-bottom: 16px; }
+  .modal-body dl { display: grid; grid-template-columns: 80px 1fr; gap: 6px 10px; font-size: .9rem; }
+  .modal-body dt { color: var(--muted); }
+  .modal-close {
+    margin-top: 22px; width: 100%; padding: 12px; border: none; border-radius: 12px;
+    background: var(--ocean); color: #fff; font-weight: 700; cursor: pointer; font-family: inherit;
+  }
+
+  .reveal { opacity: 0; transform: translateY(30px); transition: opacity .7s, transform .7s; }
+  .reveal.visible { opacity: 1; transform: none; }
+
+  .toast {
+    position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px);
+    background: var(--text); color: #fff; padding: 14px 26px; border-radius: 999px; transition: transform .3s; z-index: 300;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  @media (max-width: 900px) {
+    .map-wrap { grid-template-columns: 1fr; }
+    .seasons { grid-template-columns: repeat(2, 1fr); }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .stat:nth-child(2) { border-right: none; }
+    .stat:nth-child(-n+2) { border-bottom: 1px solid var(--border); }
+  }
+  @media (max-width: 700px) {
+    nav ul {
+      display: none; position: absolute; top: 72px; left: 0; right: 0; flex-direction: column;
+      background: #fff; padding: 20px; gap: 16px; box-shadow: 0 10px 20px rgba(0,0,0,.1);
+    }
+    nav ul.open { display: flex; }
+    nav ul a { color: var(--text); }
+    .menu-btn { display: block; }
+    .seasons { grid-template-columns: 1fr; }
+    .grid { grid-template-columns: 1fr; }
+    .btn-ghost { margin-left: 0; margin-top: 10px; }
+    section { padding: 70px 0; }
+    .subscribe { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<header id="header">
+  <div class="container nav-wrap">
+    <a href="#" class="logo">VISIT <span>JEJU</span></a>
+    <nav>
+      <button class="menu-btn" id="menuBtn" aria-label="메뉴">☰</button>
+      <ul id="navList">
+        <li><a href="#attractions">명소</a></li>
+        <li><a href="#map">지도</a></li>
+        <li><a href="#seasons">계절</a></li>
+        <li><a href="#food">먹거리</a></li>
+        <li><a href="#course">추천코스</a></li>
+        <li><a href="#tips">여행팁</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<section class="hero">
+  <svg class="scene" viewBox="0 0 1440 600" preserveAspectRatio="none" aria-hidden="true">
+    <!-- Hallasan -->
+    <path d="M0 420 C 300 380, 520 160, 720 120 C 920 160, 1140 380, 1440 400 L1440 600 L0 600 Z" fill="#15803d" opacity=".55"/>
+    <path d="M660 135 Q720 100 780 135 Q760 150 720 145 Q690 150 660 135Z" fill="#fff" opacity=".8"/>
+    <!-- Seongsan -->
+    <path d="M1130 470 L1170 410 L1290 405 L1330 470 Z" fill="#166534" opacity=".7"/>
+    <!-- Ocean waves -->
+    <path d="M0 470 C 240 440, 480 500, 720 470 C 960 440, 1200 500, 1440 470 L1440 600 L0 600 Z" fill="#0891b2"/>
+    <path d="M0 520 C 240 490, 480 550, 720 520 C 960 490, 1200 550, 1440 520 L1440 600 L0 600 Z" fill="#0e7490"/>
+  </svg>
+  <div class="container hero-content">
+    <span class="hero-tag">🍊 섬 속의 쉼, 제주</span>
+    <h1>바람과 돌, 바다가<br>만든 <em>푸른 섬</em>으로</h1>
+    <p>유네스코 세계자연유산 한라산부터 에메랄드빛 해변, 오름과 올레길까지.<br>당신만의 제주를 발견하세요.</p>
+    <a href="#attractions" class="btn btn-primary">명소 둘러보기</a>
+    <a href="#course" class="btn btn-ghost">추천 코스 보기</a>
+  </div>
+</section>
+
+<div class="container stats">
+  <div class="stats-grid">
+    <div class="stat"><b>1,950m</b><span>한라산 높이</span></div>
+    <div class="stat"><b>368개</b><span>오름</span></div>
+    <div class="stat"><b>27개</b><span>올레길 코스</span></div>
+    <div class="stat"><b>3관왕</b><span>유네스코 자연과학 분야</span></div>
+  </div>
+</div>
+
+<section id="attractions">
+  <div class="container">
+    <div class="section-head reveal">
+      <small>ATTRACTIONS</small>
+      <h2>꼭 가봐야 할 제주 명소</h2>
+      <p>카드를 누르면 자세한 정보를 볼 수 있어요</p>
+    </div>
+    <div class="filters reveal">
+      <button class="filter-btn active" data-filter="all">전체</button>
+      <button class="filter-btn" data-filter="nature">자연</button>
+      <button class="filter-btn" data-filter="beach">해변</button>
+      <button class="filter-btn" data-filter="culture">문화</button>
+      <button class="filter-btn" data-filter="activity">액티비티</button>
+    </div>
+    <div class="grid" id="cardGrid"></div>
+  </div>
+</section>
+
+<section id="map" class="map-section">
+  <div class="container">
+    <div class="section-head reveal">
+      <small>MAP</small>
+      <h2>한눈에 보는 제주 지도</h2>
+      <p>핀을 눌러 지역별 명소를 확인하세요</p>
+    </div>
+    <div class="map-wrap reveal">
+      <div class="map-box">
+        <svg viewBox="0 0 600 320" id="jejuMap" aria-label="제주도 지도">
+          <path d="M60 170 C 70 120, 140 90, 230 80 C 320 70, 420 75, 490 100 C 545 120, 560 150, 545 185 C 530 220, 470 245, 380 255 C 290 265, 190 260, 120 240 C 75 225, 52 200, 60 170 Z"
+                fill="#bbf7d0" stroke="#15803d" stroke-width="2"/>
+          <ellipse cx="300" cy="165" rx="60" ry="38" fill="#86efac"/>
+          <ellipse cx="300" cy="165" rx="26" ry="16" fill="#4ade80"/>
+          <text x="300" y="170" text-anchor="middle" font-size="12" fill="#14532d" font-weight="700">한라산</text>
+          <text x="300" y="60" text-anchor="middle" font-size="13" fill="#0e7490" font-weight="700">제주시 · 북쪽</text>
+          <text x="300" y="295" text-anchor="middle" font-size="13" fill="#0e7490" font-weight="700">서귀포시 · 남쪽</text>
+        </svg>
+      </div>
+      <div class="map-info" id="mapInfo">
+        <div class="emoji">📍</div>
+        <h3>지도의 핀을 선택하세요</h3>
+        <p>제주 곳곳에 숨어 있는 명소들의 위치와 특징을 확인할 수 있습니다.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="seasons">
+  <div class="container">
+    <div class="section-head reveal">
+      <small>SEASONS</small>
+      <h2>사계절이 아름다운 제주</h2>
+      <p>언제 떠나도 다른 얼굴을 보여주는 섬</p>
+    </div>
+    <div class="seasons reveal">
+      <div class="season spring"><div class="icon">🌼</div><h3>봄 (3~5월)</h3><p>노란 유채꽃과 벚꽃이 섬을 물들이는 계절. 가시리 녹산로, 산방산 유채꽃밭을 추천해요.</p></div>
+      <div class="season summer"><div class="icon">🏖️</div><h3>여름 (6~8월)</h3><p>에메랄드빛 바다에서 해수욕과 스노클링. 수국이 만개하는 6월도 놓치지 마세요.</p></div>
+      <div class="season autumn"><div class="icon">🌾</div><h3>가을 (9~11월)</h3><p>은빛 억새가 물결치는 오름 트레킹의 계절. 새별오름과 따라비오름이 명소입니다.</p></div>
+      <div class="season winter"><div class="icon">🍊</div><h3>겨울 (12~2월)</h3><p>설경의 한라산과 동백꽃, 그리고 제철 감귤 따기 체험까지 즐길 수 있어요.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="food" class="food-section">
+  <div class="container">
+    <div class="section-head reveal">
+      <small>FOOD</small>
+      <h2>제주에서 꼭 먹어야 할 음식</h2>
+      <p>섬의 바다와 땅이 키운 맛</p>
+    </div>
+    <div class="food-grid reveal">
+      <div class="food"><div class="icon">🥩</div><h4>흑돼지구이</h4><p>쫄깃한 식감과 고소한 육즙, 멜젓에 찍어 한 입</p></div>
+      <div class="food"><div class="icon">🐟</div><h4>갈치조림</h4><p>은빛 제주 은갈치를 매콤달콤하게</p></div>
+      <div class="food"><div class="icon">🍜</div><h4>고기국수</h4><p>진한 돼지뼈 육수에 두툼한 수육</p></div>
+      <div class="food"><div class="icon">🐚</div><h4>전복죽·전복뚝배기</h4><p>해녀가 건져 올린 바다의 보약</p></div>
+      <div class="food"><div class="icon">🍊</div><h4>감귤·한라봉</h4><p>새콤달콤 제주의 상징 과일</p></div>
+      <div class="food"><div class="icon">🥟</div><h4>오메기떡</h4><p>차조로 빚어 팥고물을 묻힌 전통 떡</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="course">
+  <div class="container">
+    <div class="section-head reveal">
+      <small>ITINERARY</small>
+      <h2>일정별 추천 코스</h2>
+      <p>여행 기간에 맞춰 골라보세요</p>
+    </div>
+    <div class="tabs reveal">
+      <button class="tab active" data-days="2">1박 2일</button>
+      <button class="tab" data-days="3">2박 3일</button>
+      <button class="tab" data-days="4">3박 4일</button>
+    </div>
+    <div class="timeline reveal" id="timeline"></div>
+  </div>
+</section>
+
+<section id="tips" style="padding-top:0">
+  <div class="container">
+    <div class="section-head reveal">
+      <small>TRAVEL TIPS</small>
+      <h2>제주 여행 꿀팁</h2>
+    </div>
+    <div class="tips-grid reveal">
+      <div class="tip"><div class="icon">🚗</div><h4>렌터카가 편리해요</h4><p>대중교통 간격이 길어 렌터카 이용을 추천합니다. 성수기에는 미리 예약하세요.</p></div>
+      <div class="tip"><div class="icon">🌬️</div><h4>바람에 대비하세요</h4><p>'삼다도'라 불릴 만큼 바람이 강해요. 가벼운 바람막이를 챙기면 좋아요.</p></div>
+      <div class="tip"><div class="icon">⛰️</div><h4>한라산 탐방 예약</h4><p>성판악·관음사 코스는 사전 탐방 예약이 필요합니다. 입산 통제 시간도 확인하세요.</p></div>
+      <div class="tip"><div class="icon">🌊</div><h4>물때 확인하기</h4><p>광치기해변, 용머리해안 등은 물때와 기상에 따라 관람이 제한될 수 있어요.</p></div>
+    </div>
+  </div>
+</section>
+
+<div class="container">
+  <div class="cta reveal">
+    <h2>제주 여행 소식을 받아보세요</h2>
+    <p>축제, 계절 명소, 숨은 맛집 정보를 메일로 보내드려요.</p>
+    <form class="subscribe" id="subForm">
+      <input type="email" placeholder="이메일 주소를 입력하세요" required>
+      <button type="submit" class="btn btn-primary">구독하기</button>
+    </form>
+  </div>
+</div>
+
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <a href="#" class="logo">VISIT <span style="color:var(--tangerine)">JEJU</span></a>
+        <p style="margin-top:10px;font-size:.9rem">바람과 돌과 여자, 그리고 바다의 섬</p>
+      </div>
+      <div>
+        <h5>여행 정보</h5>
+        <ul><li>관광 명소</li><li>추천 코스</li><li>축제·행사</li></ul>
+      </div>
+      <div>
+        <h5>교통</h5>
+        <ul><li>제주국제공항</li><li>렌터카</li><li>버스 노선</li></ul>
+      </div>
+      <div>
+        <h5>문의</h5>
+        <ul><li>관광 안내 1330</li><li>제주특별자치도</li></ul>
+      </div>
+    </div>
+    <p class="copy">© 2026 Visit Jeju. 학습용 예제 사이트입니다.</p>
+  </div>
+</footer>
+
+<div class="modal" id="modal">
+  <div class="modal-box">
+    <div class="modal-img" id="modalImg"></div>
+    <div class="modal-body">
+      <h3 id="modalTitle"></h3>
+      <p id="modalDesc"></p>
+      <dl id="modalDl"></dl>
+      <button class="modal-close" id="modalClose">닫기</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const places = [
+    { name: '한라산 국립공원', cat: 'nature', label: '자연', emoji: '🏔️', bg: 'linear-gradient(135deg,#bbf7d0,#15803d)',
+      desc: '해발 1,950m 남한 최고봉. 백록담 분화구와 사계절 다른 풍경을 자랑하는 유네스코 세계자연유산입니다.',
+      region: '제주 중앙', time: '7~9시간 (정상)', tip: '탐방 예약 필수', x: 300, y: 150 },
+    { name: '성산일출봉', cat: 'nature', label: '자연', emoji: '🌅', bg: 'linear-gradient(135deg,#fde68a,#f97316)',
+      desc: '바다 위로 솟은 거대한 응회구. 정상에서 맞이하는 일출은 제주 여행의 하이라이트입니다.',
+      region: '서귀포시 성산읍', time: '1~2시간', tip: '일출 30분 전 도착', x: 535, y: 135 },
+    { name: '협재해수욕장', cat: 'beach', label: '해변', emoji: '🏝️', bg: 'linear-gradient(135deg,#a5f3fc,#0891b2)',
+      desc: '하얀 모래와 에메랄드빛 바다, 그리고 바다 건너 비양도가 그림처럼 펼쳐지는 해변입니다.',
+      region: '제주시 한림읍', time: '2~3시간', tip: '일몰 명소', x: 95, y: 150 },
+    { name: '우도', cat: 'beach', label: '해변', emoji: '🚲', bg: 'linear-gradient(135deg,#ccfbf1,#14b8a6)',
+      desc: '소가 누운 모양의 작은 섬. 산호 해변과 땅콩 아이스크림, 전기자전거 일주가 유명합니다.',
+      region: '제주시 우도면', time: '반나절', tip: '성산항에서 배로 15분', x: 565, y: 110 },
+    { name: '만장굴', cat: 'nature', label: '자연', emoji: '🕳️', bg: 'linear-gradient(135deg,#cbd5e1,#334155)',
+      desc: '세계적인 규모의 용암동굴. 내부에는 높이 7.6m의 용암석주가 장관을 이룹니다.',
+      region: '제주시 구좌읍', time: '1시간', tip: '내부 온도 11~21℃', x: 470, y: 105 },
+    { name: '천지연폭포', cat: 'nature', label: '자연', emoji: '💧', bg: 'linear-gradient(135deg,#bae6fd,#0369a1)',
+      desc: '하늘과 땅이 만나 연못을 이룬다는 폭포. 야간 조명 아래 산책로가 특히 아름답습니다.',
+      region: '서귀포시', time: '40분', tip: '밤 10시까지 개방', x: 290, y: 245 },
+    { name: '제주 올레길', cat: 'activity', label: '액티비티', emoji: '🥾', bg: 'linear-gradient(135deg,#fed7aa,#ea580c)',
+      desc: '섬 둘레를 잇는 27개의 도보 여행 코스. 7코스(외돌개~월평)는 가장 사랑받는 구간입니다.',
+      region: '제주 전역', time: '코스당 4~6시간', tip: '간세 표식을 따라가세요', x: 230, y: 240 },
+    { name: '새별오름', cat: 'activity', label: '액티비티', emoji: '🌾', bg: 'linear-gradient(135deg,#fef3c7,#ca8a04)',
+      desc: '가을이면 은빛 억새가 물결치는 오름. 매년 봄 들불축제가 열리는 곳이기도 합니다.',
+      region: '제주시 애월읍', time: '1시간', tip: '가을 억새 시즌 추천', x: 170, y: 160 },
+    { name: '동문재래시장', cat: 'culture', label: '문화', emoji: '🏮', bg: 'linear-gradient(135deg,#fecaca,#dc2626)',
+      desc: '제주에서 가장 오래된 상설시장. 야시장의 길거리 음식과 신선한 해산물을 즐겨보세요.',
+      region: '제주시 원도심', time: '1~2시간', tip: '야시장은 저녁 6시부터', x: 300, y: 92 },
+    { name: '해녀박물관', cat: 'culture', label: '문화', emoji: '🤿', bg: 'linear-gradient(135deg,#dbeafe,#1d4ed8)',
+      desc: '유네스코 인류무형문화유산인 제주 해녀 문화를 생생하게 만날 수 있는 박물관입니다.',
+      region: '제주시 구좌읍', time: '1시간', tip: '월요일 휴관', x: 505, y: 120 },
+    { name: '중문색달해변', cat: 'beach', label: '해변', emoji: '🏄', bg: 'linear-gradient(135deg,#e0f2fe,#0284c7)',
+      desc: '파도가 좋아 서핑의 명소로 꼽히는 해변. 주변에 주상절리대와 관광단지가 모여 있습니다.',
+      region: '서귀포시 중문', time: '2~3시간', tip: '서핑 강습 가능', x: 215, y: 250 },
+    { name: '비자림', cat: 'nature', label: '자연', emoji: '🌲', bg: 'linear-gradient(135deg,#d9f99d,#3f6212)',
+      desc: '수령 500~800년의 비자나무 2,800여 그루가 자라는 숲. 피톤치드 가득한 산책을 즐겨보세요.',
+      region: '제주시 구좌읍', time: '1시간', tip: '송이길 산책로 추천', x: 440, y: 130 },
+  ];
+
+  const courses = {
+    2: [
+      { t: '동쪽 바다와 일출', s: ['성산일출봉', '광치기해변', '우도', '해녀박물관'] },
+      { t: '숲과 시장', s: ['비자림', '만장굴', '동문재래시장', '공항'] },
+    ],
+    3: [
+      { t: '제주시 & 서쪽 해안', s: ['용두암', '애월 카페거리', '협재해수욕장', '새별오름'] },
+      { t: '서귀포 남쪽', s: ['오설록 티뮤지엄', '중문색달해변', '주상절리대', '천지연폭포'] },
+      { t: '동쪽 하이라이트', s: ['성산일출봉', '섭지코지', '비자림', '동문재래시장'] },
+    ],
+    4: [
+      { t: '서쪽 해안 드라이브', s: ['애월 해안도로', '협재해수욕장', '한림공원', '수월봉 일몰'] },
+      { t: '한라산 정복', s: ['성판악 코스', '백록담', '흑돼지 저녁'] },
+      { t: '서귀포 남쪽', s: ['올레 7코스', '외돌개', '천지연폭포', '서귀포 매일올레시장'] },
+      { t: '동쪽 바다와 섬', s: ['성산일출봉', '우도 일주', '세화해변', '공항'] },
+    ],
+  };
+
+  // Render cards
+  const grid = document.getElementById('cardGrid');
+  grid.innerHTML = places.map((p, i) => `
+    <article class="card" data-cat="${p.cat}" data-idx="${i}">
+      <div class="card-img" style="background:${p.bg}">
+        <span class="badge">${p.label}</span>${p.emoji}
+      </div>
+      <div class="card-body">
+        <h3>${p.name}</h3>
+        <p>${p.desc.slice(0, 48)}…</p>
+        <div class="card-meta"><span>📍 ${p.region}</span><span>⏱ ${p.time}</span></div>
+      </div>
+    </article>`).join('');
+
+  // Filter
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const f = btn.dataset.filter;
+      document.querySelectorAll('.card').forEach(c => {
+        c.classList.toggle('hide', f !== 'all' && c.dataset.cat !== f);
+      });
+    });
+  });
+
+  // Modal
+  const modal = document.getElementById('modal');
+  function openModal(p) {
+    document.getElementById('modalImg').style.background = p.bg;
+    document.getElementById('modalImg').textContent = p.emoji;
+    document.getElementById('modalTitle').textContent = p.name;
+    document.getElementById('modalDesc').textContent = p.desc;
+    document.getElementById('modalDl').innerHTML =
+      `<dt>위치</dt><dd>${p.region}</dd><dt>소요시간</dt><dd>${p.time}</dd><dt>여행팁</dt><dd>${p.tip}</dd>`;
+    modal.classList.add('open');
+  }
+  grid.addEventListener('click', e => {
+    const card = e.target.closest('.card');
+    if (card) openModal(places[card.dataset.idx]);
+  });
+  document.getElementById('modalClose').onclick = () => modal.classList.remove('open');
+  modal.addEventListener('click', e => { if (e.target === modal) modal.classList.remove('open'); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') modal.classList.remove('open'); });
+
+  // Map pins
+  const svg = document.getElementById('jejuMap');
+  const NS = 'http://www.w3.org/2000/svg';
+  const info = document.getElementById('mapInfo');
+  places.forEach(p => {
+    const g = document.createElementNS(NS, 'g');
+    g.setAttribute('class', 'pin');
+    g.innerHTML = `<circle class="dot" cx="${p.x}" cy="${p.y}" r="7" fill="#f97316" stroke="#fff" stroke-width="2"/>
+                   <title>${p.name}</title>`;
+    g.addEventListener('click', () => {
+      svg.querySelectorAll('.pin').forEach(x => x.classList.remove('active'));
+      g.classList.add('active');
+      info.innerHTML = `<div class="emoji">${p.emoji}</div><h3>${p.name}</h3><p>${p.desc}</p>
+                        <span class="region">📍 ${p.region} · ⏱ ${p.time}</span>`;
+    });
+    svg.appendChild(g);
+  });
+
+  // Itinerary
+  const timeline = document.getElementById('timeline');
+  function renderCourse(d) {
+    timeline.innerHTML = courses[d].map((day, i) => `
+      <div class="day">
+        <div class="num">D${i + 1}</div>
+        <h4>${day.t}</h4>
+        <ul>${day.s.map(s => `<li>${s}</li>`).join('')}</ul>
+      </div>`).join('');
+  }
+  renderCourse(2);
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      renderCourse(tab.dataset.days);
+    });
+  });
+
+  // Header scroll
+  const header = document.getElementById('header');
+  window.addEventListener('scroll', () => header.classList.toggle('scrolled', window.scrollY > 60));
+
+  // Mobile menu
+  const navList = document.getElementById('navList');
+  document.getElementById('menuBtn').onclick = () => navList.classList.toggle('open');
+  navList.querySelectorAll('a').forEach(a => a.onclick = () => navList.classList.remove('open'));
+
+  // Reveal on scroll
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(en => { if (en.isIntersecting) { en.target.classList.add('visible'); io.unobserve(en.target); } });
+  }, { threshold: .15 });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+  // Subscribe
+  const toast = document.getElementById('toast');
+  document.getElementById('subForm').addEventListener('submit', e => {
+    e.preventDefault();
+    toast.textContent = '🍊 구독해 주셔서 감사합니다!';
+    toast.classList.add('show');
+    e.target.reset();
+    setTimeout(() => toast.classList.remove('show'), 2500);
+  });
+</script>
+</body>
+</html>
