@@ -235,6 +235,32 @@
     background: var(--ocean); color: #fff; font-weight: 700; cursor: pointer; font-family: inherit;
   }
 
+  /* Guestbook */
+  .api-status { font-weight: 700; }
+  .api-status.ok { color: var(--green); }
+  .api-status.err { color: #dc2626; }
+  .gb-wrap { display: grid; grid-template-columns: 1fr 1.3fr; gap: 30px; align-items: start; }
+  .gb-form {
+    display: flex; flex-direction: column; gap: 12px; background: var(--card);
+    padding: 26px; border-radius: var(--radius); border: 1px solid var(--border);
+  }
+  .gb-form input, .gb-form textarea {
+    padding: 12px 14px; border: 1px solid var(--border); border-radius: 12px;
+    font-family: inherit; font-size: .95rem; resize: vertical;
+  }
+  .gb-form button { border: none; cursor: pointer; font-family: inherit; font-size: 1rem; }
+  .gb-form button:disabled { opacity: .6; cursor: wait; }
+  .gb-list { list-style: none; display: flex; flex-direction: column; gap: 12px; max-height: 460px; overflow-y: auto; }
+  .gb-list li {
+    background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px 18px;
+  }
+  .gb-list .gb-head { display: flex; justify-content: space-between; gap: 10px; font-size: .85rem; color: var(--muted); }
+  .gb-list .gb-head b { color: var(--text); font-size: .95rem; }
+  .gb-list .gb-place { color: var(--ocean); font-weight: 500; }
+  .gb-list p { margin-top: 6px; overflow-wrap: anywhere; }
+  .gb-list .gb-empty { color: var(--muted); text-align: center; }
+  @media (max-width: 900px) { .gb-wrap { grid-template-columns: 1fr; } }
+
   .reveal { opacity: 0; transform: translateY(30px); transition: opacity .7s, transform .7s; }
   .reveal.visible { opacity: 1; transform: none; }
 
@@ -281,6 +307,7 @@
         <li><a href="#food">먹거리</a></li>
         <li><a href="#course">추천코스</a></li>
         <li><a href="#tips">여행팁</a></li>
+        <li><a href="#guestbook">방명록</a></li>
       </ul>
     </nav>
   </div>
@@ -426,7 +453,26 @@
   </div>
 </section>
 
-<div class="container">
+<section id="guestbook" class="food-section">
+  <div class="container">
+    <div class="section-head reveal">
+      <small>GUESTBOOK</small>
+      <h2>제주 여행 방명록</h2>
+      <p>여행 후기를 남겨 주세요 · <span id="apiStatus" class="api-status">서버 확인 중…</span></p>
+    </div>
+    <div class="gb-wrap reveal">
+      <form class="gb-form" id="gbForm">
+        <input name="name" placeholder="이름" maxlength="30" required>
+        <input name="place" placeholder="다녀온 곳 (예: 성산일출봉)" maxlength="50">
+        <textarea name="message" placeholder="한 줄 후기를 남겨 주세요" maxlength="300" rows="4" required></textarea>
+        <button type="submit" class="btn btn-primary">후기 남기기</button>
+      </form>
+      <ul class="gb-list" id="gbList"><li class="gb-empty">불러오는 중…</li></ul>
+    </div>
+  </div>
+</section>
+
+<div class="container" style="margin-top:100px">
   <div class="cta reveal">
     <h2>제주 여행 소식을 받아보세요</h2>
     <p>축제, 계절 명소, 숨은 맛집 정보를 메일로 보내드려요.</p>
@@ -629,6 +675,84 @@
     entries.forEach(en => { if (en.isIntersecting) { en.target.classList.add('visible'); io.unobserve(en.target); } });
   }, { threshold: .15 });
   document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+  // Guestbook (FastAPI → Supabase)
+  // 로컬에서는 localhost:8000, 배포 후에는 Railway 주소를 사용합니다.
+  const RAILWAY_API = 'https://my-api-production-5ec4.up.railway.app';
+  // 주소 뒤에 ?api=railway 를 붙이면 로컬 화면에서도 Railway 백엔드를 사용
+  const useRailway = new URLSearchParams(location.search).get('api') === 'railway';
+  const API_BASE = ['localhost', '127.0.0.1'].includes(location.hostname) && !useRailway
+    ? 'http://localhost:8000'
+    : RAILWAY_API;
+
+  const gbList = document.getElementById('gbList');
+  const gbForm = document.getElementById('gbForm');
+  const apiStatus = document.getElementById('apiStatus');
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+  async function checkApi() {
+    try {
+      const r = await fetch(`${API_BASE}/health`);
+      if (!r.ok) throw new Error(r.status);
+      apiStatus.textContent = '● 서버 연결됨';
+      apiStatus.className = 'api-status ok';
+    } catch {
+      apiStatus.textContent = '● 서버 연결 실패';
+      apiStatus.className = 'api-status err';
+    }
+  }
+
+  async function loadGuestbook() {
+    try {
+      const r = await fetch(`${API_BASE}/api/guestbook`);
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.detail || r.status);
+      gbList.innerHTML = data.length
+        ? data.map(g => `
+            <li>
+              <div class="gb-head">
+                <span><b>${esc(g.name)}</b>${g.place ? ` · <span class="gb-place">📍 ${esc(g.place)}</span>` : ''}</span>
+                <span>${new Date(g.created_at).toLocaleString('ko-KR')}</span>
+              </div>
+              <p>${esc(g.message)}</p>
+            </li>`).join('')
+        : '<li class="gb-empty">첫 번째 후기를 남겨 주세요 🍊</li>';
+    } catch (e) {
+      gbList.innerHTML = `<li class="gb-empty">방명록을 불러오지 못했습니다: ${esc(e.message)}</li>`;
+    }
+  }
+
+  gbForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    const btn = gbForm.querySelector('button');
+    btn.disabled = true;
+    try {
+      const body = Object.fromEntries(new FormData(gbForm));
+      const r = await fetch(`${API_BASE}/api/guestbook`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const data = await r.json();
+      if (!r.ok) throw new Error(typeof data.detail === 'string' ? data.detail : '입력값을 확인해 주세요');
+      gbForm.reset();
+      showToast('✅ 후기가 등록되었습니다!');
+      loadGuestbook();
+    } catch (err) {
+      showToast('⚠️ ' + err.message);
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  checkApi();
+  loadGuestbook();
+
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2500);
+  }
 
   // Subscribe
   const toast = document.getElementById('toast');

@@ -1,0 +1,11 @@
+vjeju/
+.venv/
+.env
+.env.txt
+__pycache__/
+*.pyc
+.vercel
+
+# 백엔드는 별도 저장소(joyeonjung1/my-api)로 관리
+my-api/
+.claude/
